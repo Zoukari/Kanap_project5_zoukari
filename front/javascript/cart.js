@@ -3,28 +3,22 @@
 const itemsSection = document.getElementById("items");
 const url = "http://localhost:3000/api/products"
 
-
 const basketDataDisplay = document.getElementById("cart__items");
 let basketData
 
 fetch(url)
     .then(response => response.json())
     .then(prouctsDatas => prouctsDatas.filter((item) => {
-
         basketData = item
-
         //var basketItemsStorage= localStorage.getItem('basketItemId')
         let basketDatasStorage = localStorage.getItem('basketDataItems')
 
         let datason = JSON.parse(basketDatasStorage)
         datason.filter((item2) => {
             let item_id_ = item2.id
-            if (item_id_.includes(item._id)) {
-
-
+            if(item_id_.includes(item._id)) {
                 basketDataDisplay.innerHTML += `
-
-    <article class="cart__item" data-id="${item._id}" data-color="{product-color}">
+    <article class="cart__item" data-id="${item._id}" data-color="${item2.color}">
     <div class="cart__item__img">
       <img src="${basketData.imageUrl}" alt="${item.altTxt}">
     </div>
@@ -46,18 +40,21 @@ fetch(url)
     </div>
     </article> 
     
-    
     `;
-
-
             }
         })
-
-
-
-
     }))
 
+
+    function ValidateEmail(mail) 
+    {
+     if (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(mail))
+      {
+        return (true)
+      }
+       // alert("You have entered an invalid email address!")
+        return (false)
+    }
 
 
 /*  commander */
@@ -65,8 +62,6 @@ let order_url = "http://localhost:3000/api/products/order"
 setTimeout(function() {
     const order = document.getElementById("order");
     order.addEventListener("click", function(e) {
-
-
 
         e.preventDefault()
         /*get input and user data*/
@@ -107,10 +102,6 @@ setTimeout(function() {
         stringifyedPayload_ = payload
         stringifyedPayload_.products = array_item5.split(/[.,!,?,;,...]/);
         console.log(stringifyedPayload_)
-
-
-
-
         let options = {
             method: "POST",
             headers: {
@@ -125,42 +116,67 @@ setTimeout(function() {
             })
             .then((data) => {
 
-
+                console.log(order_url)
 
                 //validation form
 
-                if (user_firstName == "") {
+             //validation form
+             let validateFirstName = validateLastname = validateAdress = validateCity = validateEmail = false
+                     
+             if (user_firstName == "") {
+                document.getElementById('firstNameErrorMsg').innerHTML = "Veuillez entrer votre nom"
 
-                    alert("Veuillez entrer votre nom")
-                } else if (user_lastName == "") {
+            }else{
+                document.getElementById('firstNameErrorMsg').innerHTML = ""
+                validateFirstName = true
+            }
+            
+             if (user_lastName == "") {
+                document.getElementById('lastNameErrorMsg').innerHTML = "Veuillez entrer votre prenom"
 
-                    alert("Veuillez entrer votre prenom")
-                } else if (user_address == "") {
+            }  else{
+                document.getElementById('lastNameErrorMsg').innerHTML = ""
+                validateLastname = true
 
-                    alert("Veuillez entrer votre adresse")
-                } else if (user_city == "") {
+            }
+             if (user_address == "") {
+                document.getElementById('addressErrorMsg').innerHTML = "Veuillez entrer votre addresse"
 
-                    alert("Veuillez entrer votre ville")
-                } else if (user_email == "") {
+            } else{
+                document.getElementById('addressErrorMsg').innerHTML = ""
+                validateAdress = true
+            }
+            
+             if (user_city == "") {
+                document.getElementById('cityErrorMsg').innerHTML = "Veuillez entrer votre ville"
 
-                    alert("Veuillez entrer votre mail")
-                } else {
+            }else{
+                document.getElementById('cityErrorMsg').innerHTML = ""
+                validateCity = true
+            }
+            
+             if (user_email == "" ) {
 
-                    window.location.href = "../html/confirmation.html?order-id=" + data.orderId;
-                    localStorage.clear();
+                document.getElementById('emailErrorMsg').innerHTML = "Veuillez entrer votre mail"
 
-
-
-                }
-
-
-
-
+               
+            } 
+            else if (!ValidateEmail(user_email)){
+                document.getElementById('emailErrorMsg').innerHTML = "Votre Email est incorrect"
+            
+            }
+            
+            else{
+                document.getElementById('emailErrorMsg').innerHTML = ""
+                validateEmail = true
+            }
+            console.log('valise' + validateFirstName + ' ' + validateLastname + ' ' + validateAdress + ' ' + validateCity + ' ' + validateEmail)
+            if(validateFirstName && validateLastname && validateAdress && validateCity && validateEmail) {
+                window.location.href = "../html/confirmation.html?order-id=" + data.orderId;
+                localStorage.clear();
+            }
                 console.log(data)
             });
-
-
-
     })
 }, 1000)
 
@@ -171,6 +187,7 @@ setTimeout(function() {
 
 let total = 0
 let updatedTotal = 0
+
 
 function displayTotalToPay() {
     fetch(url)
@@ -202,42 +219,47 @@ function displayTotalToPay() {
 }
 displayTotalToPay()
 
-
-
-
 //delete product from basket
 setTimeout(function() {
+
     const deletProductBtn = document.getElementsByClassName("deleteItem")
     for (i = 0; i < deletProductBtn.length; i++) {
 
         deletProductBtn[i].addEventListener("click", function(event) {
-
-
-
-
+          
             let getOldBasketItemId = JSON.parse(localStorage.getItem("basketItemId"));
             let getOldbasketDataItems = JSON.parse(localStorage.getItem("basketDataItems"));
-
-            let rest_basketItemId = getOldBasketItemId.filter((data) => {
-                const data_set_delete = event.target.parentElement.parentElement.parentElement.parentElement.getAttribute("data-id")
-
-                return data !== data_set_delete
-            })
+            let data_set_delete = event.target.parentElement.parentElement.parentElement.parentElement.getAttribute("data-id")
+            let data_color = event.target.parentElement.parentElement.parentElement.parentElement.getAttribute("data-color")
 
             let rest_getOldbasketDataItems = getOldbasketDataItems.filter((data) => {
-                let data_set_delete = event.target.parentElement.parentElement.parentElement.parentElement.getAttribute("data-id")
+              
+              let countOtherItems = 0
+                const otherItems =  getOldbasketDataItems.filter(item => {
+                               if(item.id == data_set_delete){
+                                countOtherItems += 1
+                               } 
+                            })
+        if(countOtherItems <= 1){
 
-                return data.id !== data_set_delete
+            let rest_basketItemId = getOldBasketItemId.filter((data) => {
+              
+
+               return data !== data_set_delete
             })
 
-
-
-
             localStorage.setItem('basketItemId', JSON.stringify(rest_basketItemId));
+
+        }
+                return data.color !== data_color 
+                
+                
+            })
+           // 
             localStorage.setItem('basketDataItems', JSON.stringify(rest_getOldbasketDataItems));
+            //event.preventDefault();
 
-
-            window.location.href = "../html/cart.html"
+          window.location.href = "../html/cart.html"
         })
 
 
@@ -262,16 +284,10 @@ setTimeout(function() {
 
             let getOldbasketDataItems = JSON.parse(localStorage.getItem("basketDataItems"));
 
-
-
-
             let oldbasketDataItems = JSON.parse(localStorage.getItem("basketDataItems"));
             let itemId = event.target.parentElement.parentElement.parentElement.parentElement.getAttribute("data-id")
 
             let newProductNumber = event.target.value
-
-
-
 
             oldbasketDataItems.filter((data) => {
 
@@ -294,10 +310,7 @@ setTimeout(function() {
                         oldbasketDataItemsNew.push(SendNewObject)
                         localStorage.setItem('basketDataItems', JSON.stringify(oldbasketDataItemsNew));
 
-
                         setTimeout(function() {
-
-
 
                             let arr_ = []
                             fetch(url)
